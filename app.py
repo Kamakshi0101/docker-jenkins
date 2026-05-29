@@ -1,1 +1,10 @@
-print("hello from docker and jenkins")
+# print("hello from docker and jenkins")
+
+from flask import Flask
+app= Flask(__name__)
+
+@app.route('/')
+def hello():
+    return "Hello, Docker and Jenkins!"
+if __name__ == '__main__':    
+    app.run(host='0.0.0.0', port=5000)

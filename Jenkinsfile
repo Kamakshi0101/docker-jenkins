@@ -23,24 +23,95 @@
 //     }
 // }
 
+// pipeline {
+//     agent {
+//         docker {
+//             image 'python:3.11-slim'
+//         }
+//     }
+
+//     stages {
+//         stage('Check Python Version') {
+//             steps {
+//                 sh 'python --version'
+//             }
+//         }
+
+//         stage('Check Pip Version') {
+//             steps {
+//                 sh 'pip --version'
+//             }
+//         }
+//     }
+// }
+
 pipeline {
-    agent {
-        docker {
-            image 'python:3.11-slim'
-        }
+
+    agent any
+
+    environment {
+        IMAGE_NAME = "kamakshiagg/flask-jenkins"
+        IMAGE_TAG = "latest"
     }
 
     stages {
-        stage('Check Python Version') {
+
+        stage('Code Checkout') {
             steps {
-                sh 'python --version'
+                checkout scm
             }
         }
 
-        stage('Check Pip Version') {
+        stage('Build Docker Image') {
             steps {
-                sh 'pip --version'
+                bat 'docker build -t %IMAGE_NAME%:%IMAGE_TAG% .'
             }
+        }
+
+        stage('Login to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-credentials',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+
+                    bat '''
+                    echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                    '''
+                }
+            }
+        }
+
+        stage('Push Image to Docker Hub') {
+            steps {
+                bat 'docker push %IMAGE_NAME%:%IMAGE_TAG%'
+            }
+        }
+
+        stage('Deploy Container') {
+            steps {
+                bat '''
+                docker stop flask-app || exit 0
+                docker rm flask-app || exit 0
+                docker run -d --name flask-app -p 5000:5000 %IMAGE_NAME%:%IMAGE_TAG%
+                '''
+            }
+        }
+    }
+
+    post {
+
+        success {
+            echo 'Docker image built, pushed, and deployed successfully.'
+        }
+
+        failure {
+            echo 'Pipeline failed.'
+        }
+
+        always {
+            bat 'docker images'
         }
     }
 }
