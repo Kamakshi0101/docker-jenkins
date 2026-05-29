@@ -92,9 +92,11 @@ pipeline {
         stage('Deploy Container') {
             steps {
                 bat '''
-                docker stop flask-app || exit 0
-                docker rm flask-app || exit 0
+                //docker rm -f flask-app 2>nul
+
                 docker run -d --name flask-app -p 5000:5000 %IMAGE_NAME%:%IMAGE_TAG%
+
+                docker ps
                 '''
             }
         }
