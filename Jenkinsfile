@@ -29,15 +29,17 @@ pipeline {
             image 'python:3.11-slim'
         }
     }
+
     stages {
-        stage('Check Python') {
+        stage('Check Python Version') {
             steps {
-                bat 'python --version'
+                sh 'python --version'
             }
         }
-        stage('Check pip') {
+
+        stage('Check Pip Version') {
             steps {
-                bat 'pip --version'
+                sh 'pip --version'
             }
         }
     }
