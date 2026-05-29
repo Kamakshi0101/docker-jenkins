@@ -23,24 +23,22 @@
 //     }
 // }
 
-pipeline{
-    agent{
-        docker{
+pipeline {
+    agent {
+        docker {
             image 'python:3.11-slim'
         }
     }
-    stages{
-        stage('check python')
-        {
-            steps{
+    stages {
+        stage('Check Python') {
+            steps {
                 bat 'python --version'
             }
         }
-            stage('check pip')
-            {
-                steps{
-                    bat 'pip --version'
-                }
+        stage('Check pip') {
+            steps {
+                bat 'pip --version'
             }
+        }
     }
 }
